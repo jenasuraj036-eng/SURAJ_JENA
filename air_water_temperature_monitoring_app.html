@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EcoMonitor · Air · Water · Temperature</title>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(145deg, #f0f5fa 0%, #dae6f0 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    .dashboard {
+      max-width: 1300px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 3rem 3rem 2rem 2rem;
+      padding: 2rem 2.5rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 20, 30, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      transition: 0.3s ease;
+    }
+
+    /* header */
+    .app-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 2.5rem;
+    }
+
+    .app-header h1 {
+      font-size: 2.2rem;
+      font-weight: 600;
+      color: #0b2b3b;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .app-header h1 i {
+      color: #2a7f6e;
+      font-size: 2.4rem;
+    }
+
+    .live-badge {
+      background: #1e4b4f;
+      color: white;
+      padding: 0.5rem 1.4rem;
+      border-radius: 60px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      letter-spacing: 0.3px;
+      box-shadow: 0 4px 8px rgba(0,30,20,0.1);
+    }
+
+    .live-badge i {
+      font-size: 0.8rem;
+      color: #8effd2;
+    }
+
+    /* grid cards */
+    .monitor-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.8rem;
+      margin-bottom: 2.8rem;
+    }
+
+    .metric-card {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      border-radius: 2.2rem;
+      padding: 1.8rem 1.6rem 2rem;
+      box-shadow: 0 8px 24px rgba(0, 20, 30, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      transition: all 0.25s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .metric-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 18px 36px -8px rgba(0, 40, 50, 0.2);
+      background: rgba(255, 255, 255, 0.8);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: #1d3f4a;
+      letter-spacing: 0.3px;
+      margin-bottom: 1rem;
+    }
+
+    .card-header i {
+      font-size: 1.8rem;
+      width: 2.2rem;
+      color: #1f6d5e;
+    }
+
+    .value-wrap {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .main-value {
+      font-size: 2.8rem;
+      font-weight: 700;
+      color: #0c2a33;
+      line-height: 1.1;
+    }
+
+    .unit {
+      font-size: 1.1rem;
+      font-weight: 400;
+      color: #3e6472;
+      margin-left: 0.3rem;
+    }
+
+    .status-badge {
+      background: #eaf3f0;
+      padding: 0.3rem 1rem;
+      border-radius: 30px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #1e5a52;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: 0.6rem;
+    }
+
+    .sub-metric {
+      margin-top: 0.8rem;
+      font-size: 0.9rem;
+      color: #2d5663;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      flex-wrap: wrap;
+      border-top: 1px solid rgba(90, 130, 140, 0.15);
+      padding-top: 0.8rem;
+    }
+
+    .sub-metric i {
+      color: #3a7b76;
+      width: 1.2rem;
+    }
+
+    .trend-indicator {
+      background: #d0e3e0;
+      border-radius: 40px;
+      padding: 0.1rem 0.7rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #11554a;
+    }
+
+    /* extended details / extra info */
+    .extra-panel {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1.2rem;
+      margin-top: 0.8rem;
+      background: rgba(220, 240, 245, 0.3);
+      border-radius: 2.5rem;
+      padding: 1.8rem 1.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+
+    .extra-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .extra-item i {
+      font-size: 1.5rem;
+      color: #1c6b62;
+      width: 2rem;
+    }
+
+    .extra-item div {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .extra-item .label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #2e5f68;
+      opacity: 0.8;
+    }
+
+    .extra-item .data {
+      font-weight: 600;
+      color: #0b303b;
+      font-size: 1.1rem;
+    }
+
+    .footer-note {
+      margin-top: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      color: #2a5f68;
+      font-size: 0.9rem;
+      border-top: 1px solid rgba(70, 120, 130, 0.15);
+      padding-top: 1.8rem;
+    }
+
+    .footer-note i {
+      margin-right: 0.4rem;
+      color: #1f7568;
+    }
+
+    .update-time {
+      background: #e2f0ee;
+      padding: 0.4rem 1.2rem;
+      border-radius: 60px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    @media (max-width: 600px) {
+      .dashboard {
+        padding: 1.5rem 1rem;
+      }
+      .app-header h1 {
+        font-size: 1.7rem;
+      }
+      .main-value {
+        font-size: 2.2rem;
+      }
+      .extra-panel {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    /* color accents for different metrics */
+    .air-card .card-header i { color: #2b7a78; }
+    .water-card .card-header i { color: #1f7a8c; }
+    .temp-card .card-header i { color: #c16e3b; }
+
+    .air-card .status-badge { background: #d4eee9; color: #14635a; }
+    .water-card .status-badge { background: #d0e6f0; color: #10647a; }
+    .temp-card .status-badge { background: #f3e3d4; color: #a5572a; }
+  </style>
+</head>
+<body>
+
+<div class="dashboard">
+
+  <!-- HEADER -->
+  <header class="app-header">
+    <h1>
+      <i class="fas fa-leaf"></i> 
+      EcoMonitor
+    </h1>
+    <div class="live-badge">
+      <i class="fas fa-circle"></i> LIVE · 3 sensors
+    </div>
+  </header>
+
+  <!-- 3 MAIN METRICS: AIR, WATER, TEMPERATURE -->
+  <div class="monitor-grid">
+
+    <!-- AIR CARD -->
+    <div class="metric-card air-card">
+      <div class="card-header">
+        <i class="fas fa-wind"></i> Air Quality
+      </div>
+      <div class="value-wrap">
+        <span class="main-value" id="airValue">42</span>
+        <span class="unit">AQI</span>
+      </div>
+      <div class="status-badge">
+        <i class="fas fa-check-circle"></i> Moderate
+      </div>
+      <div class="sub-metric">
+        <span><i class="fas fa-microscope"></i> PM2.5: <strong id="pm25">12</strong> µg/m³</span>
+        <span class="trend-indicator"><i class="fas fa-arrow-down"></i> -3%</span>
+      </div>
+      <div class="sub-metric" style="border-top: none; padding-top: 0.2rem;">
+        <span><i class="fas fa-circle"></i> O₃: <strong id="ozone">28</strong> ppb</span>
+        <span><i class="fas fa-circle"></i> NO₂: <strong id="no2">9</strong> ppb</span>
+      </div>
+    </div>
+
+    <!-- WATER CARD -->
+    <div class="metric-card water-card">
+      <div class="card-header">
+        <i class="fas fa-droplet"></i> Water Quality
+      </div>
+      <div class="value-wrap">
+        <span class="main-value" id="waterValue">7.8</span>
+        <span class="unit">pH</span>
+      </div>
+      <div class="status-badge">
+        <i class="fas fa-check-circle"></i> Neutral
+      </div>
+      <div class="sub-metric">
+        <span><i class="fas fa-flask"></i> TDS: <strong id="tds">186</strong> ppm</span>
+        <span class="trend-indicator"><i class="fas fa-arrow-up"></i> +1.2%</span>
+      </div>
+      <div class="sub-metric" style="border-top: none; padding-top: 0.2rem;">
+        <span><i class="fas fa-temperature-low"></i> Temp: <strong id="waterTemp">18.2</strong> °C</span>
+        <span><i class="fas fa-tint"></i> Turbidity: <strong id="turbidity">0.9</strong> NTU</span>
+      </div>
+    </div>
+
+    <!-- TEMPERATURE CARD -->
+    <div class="metric-card temp-card">
+      <div class="card-header">
+        <i class="fas fa-thermometer-half"></i> Temperature
+      </div>
+      <div class="value-wrap">
+        <span class="main-value" id="tempValue">22.4</span>
+        <span class="unit">°C</span>
+      </div>
+      <div class="status-badge">
+        <i class="fas fa-check-circle"></i> Comfortable
+      </div>
+      <div class="sub-metric">
+        <span><i class="fas fa-thermometer-three-quarters"></i> Feels like: <strong id="feelsLike">23.1</strong> °C</span>
+        <span class="trend-indicator"><i class="fas fa-arrow-up"></i> +0.6°</span>
+      </div>
+      <div class="sub-metric" style="border-top: none; padding-top: 0.2rem;">
+        <span><i class="fas fa-water"></i> Humidity: <strong id="humidity">62</strong> %</span>
+        <span><i class="fas fa-wind"></i> Wind: <strong id="windSpeed">4.2</strong> km/h</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXTRA DETAILS / ADDITIONAL SENSOR DATA -->
+  <div class="extra-panel">
+    <div class="extra-item">
+      <i class="fas fa-cloud-sun"></i>
+      <div>
+        <span class="label">UV Index</span>
+        <span class="data" id="uvIndex">3</span>
+      </div>
+    </div>
+    <div class="extra-item">
+      <i class="fas fa-smog"></i>
+      <div>
+        <span class="label">CO₂ (indoor)</span>
+        <span class="data" id="co2">412 <small style="font-weight:400;">ppm</small></span>
+      </div>
+    </div>
+    <div class="extra-item">
+      <i class="fas fa-water"></i>
+      <div>
+        <span class="label">Dissolved O₂</span>
+        <span class="data" id="dissolvedO2">7.2 <small style="font-weight:400;">mg/L</small></span>
+      </div>
+    </div>
+    <div class="extra-item">
+      <i class="fas fa-tachometer-alt"></i>
+      <div>
+        <span class="label">Pressure</span>
+        <span class="data" id="pressure">1013 <small style="font-weight:400;">hPa</small></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER: last update + timestamp -->
+  <div class="footer-note">
+    <span><i class="fas fa-satellite-dish"></i> Data from local sensors · simulation</span>
+    <span class="update-time">
+      <i class="far fa-clock"></i> 
+      <span id="updateTimestamp">Updating…</span>
+    </span>
+  </div>
+</div>
+
+<script>
+  (function() {
+    "use strict";
+
+    // DOM references
+    const airValue = document.getElementById('airValue');
+    const pm25 = document.getElementById('pm25');
+    const ozone = document.getElementById('ozone');
+    const no2 = document.getElementById('no2');
+
+    const waterValue = document.getElementById('waterValue');
+    const tds = document.getElementById('tds');
+    const waterTemp = document.getElementById('waterTemp');
+    const turbidity = document.getElementById('turbidity');
+
+    const tempValue = document.getElementById('tempValue');
+    const feelsLike = document.getElementById('feelsLike');
+    const humidity = document.getElementById('humidity');
+    const windSpeed = document.getElementById('windSpeed');
+
+    // extra
+    const uvIndex = document.getElementById('uvIndex');
+    const co2 = document.getElementById('co2');
+    const dissolvedO2 = document.getElementById('dissolvedO2');
+    const pressure = document.getElementById('pressure');
+
+    const timestampSpan = document.getElementById('updateTimestamp');
+
+    // ---- helper: random variation around base ----
+    function vary(base, range, decimals = 1) {
+      const delta = (Math.random() * 2 - 1) * range;
+      const val = base + delta;
+      return Number(val.toFixed(decimals));
+    }
+
+    // ---- update all values with realistic "monitoring" data ----
+    function refreshData() {
+      // Air
+      const aqiBase = 42;
+      const newAqi = Math.min(150, Math.max(8, vary(aqiBase, 12, 0)));
+      airValue.textContent = newAqi;
+      pm25.textContent = vary(12, 4, 1);
+      ozone.textContent = vary(28, 9, 0);
+      no2.textContent = vary(9, 4, 0);
+
+      // Water
+      waterValue.textContent = vary(7.8, 0.5, 1);
+      tds.textContent = vary(186, 18, 0);
+      waterTemp.textContent = vary(18.2, 1.8, 1);
+      turbidity.textContent = vary(0.9, 0.6, 1);
+
+      // Temperature
+      const baseTemp = 22.4;
+      const newTemp = vary(baseTemp, 2.2, 1);
+      tempValue.textContent = newTemp;
+      feelsLike.textContent = vary(newTemp + 0.6, 1.2, 1);
+      humidity.textContent = Math.min(85, Math.max(25, vary(62, 12, 0)));
+      windSpeed.textContent = vary(4.2, 2.0, 1);
+
+      // extras
+      uvIndex.textContent = Math.min(11, Math.max(0, vary(3, 1.8, 0)));
+      co2.innerHTML = `${Math.min(1200, Math.max(380, vary(412, 70, 0)))} <small style="font-weight:400;">ppm</small>`;
+      dissolvedO2.innerHTML = `${vary(7.2, 1.2, 1)} <small style="font-weight:400;">mg/L</small>`;
+      pressure.innerHTML = `${Math.min(1035, Math.max(980, vary(1013, 12, 0)))} <small style="font-weight:400;">hPa</small>`;
+
+      // timestamp
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      timestampSpan.textContent = `Last updated: ${timeStr}`;
+    }
+
+    // ---- update status badges dynamically based on values ----
+    function updateBadges() {
+      // Air quality badge
+      const aqi = parseInt(airValue.textContent, 10);
+      const airBadge = document.querySelector('.air-card .status-badge');
+      if (aqi <= 50) {
+        airBadge.innerHTML = '<i class="fas fa-check-circle"></i> Good';
+        airBadge.style.background = '#c8e6d9';
+        airBadge.style.color = '#0b5e4a';
+      } else if (aqi <= 100) {
+        airBadge.innerHTML = '<i class="fas fa-check-circle"></i> Moderate';
+        airBadge.style.background = '#d4eee9';
+        airBadge.style.color = '#14635a';
+      } else if (aqi <= 150) {
+        airBadge.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Unhealthy (sensitive)';
+        airBadge.style.background = '#f7e4c8';
+        airBadge.style.color = '#8f601f';
+      } else {
+        airBadge.innerHTML = '<i class="fas fa-exclamation-circle"></i> Unhealthy';
+        airBadge.style.background = '#f7d0c8';
+        airBadge.style.color = '#a53a2a';
+      }
+
+      // Water pH badge
+      const pH = parseFloat(waterValue.textContent);
+      const waterBadge = document.querySelector('.water-card .status-badge');
+      if (pH >= 6.5 && pH <= 8.5) {
+        waterBadge.innerHTML = '<i class="fas fa-check-circle"></i> Neutral';
+        waterBadge.style.background = '#d0e6f0';
+        waterBadge.style.color = '#10647a';
+      } else if (pH < 6.5) {
+        waterBadge.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Acidic';
+        waterBadge.style.background = '#f3ded0';
+        waterBadge.style.color = '#9e5a37';
+      } else {
+        waterBadge.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Alkaline';
+        waterBadge.style.background = '#d0dbf0';
+        waterBadge.style.color = '#2f4f7a';
+      }
+
+      // Temperature comfort badge
+      const temp = parseFloat(tempValue.textContent);
+      const tempBadge = document.querySelector('.temp-card .status-badge');
+      if (temp >= 18 && temp <= 26) {
+        tempBadge.innerHTML = '<i class="fas fa-check-circle"></i> Comfortable';
+        tempBadge.style.background = '#f3e3d4';
+        tempBadge.style.color = '#a5572a';
+      } else if (temp < 18) {
+        tempBadge.innerHTML = '<i class="fas fa-thermometer-low"></i> Cool';
+        tempBadge.style.background = '#d4e3f0';
+        tempBadge.style.color = '#2a5b7a';
+      } else {
+        tempBadge.innerHTML = '<i class="fas fa-thermometer-high"></i> Warm';
+        tempBadge.style.background = '#f7dcc8';
+        tempBadge.style.color = '#a5451f';
+      }
+    }
+
+    // ---- combined update ----
+    function fullUpdate() {
+      refreshData();
+      updateBadges();
+    }
+
+    // ---- initial update and interval ----
+    fullUpdate();
+
+    // update every 5 seconds (simulate live monitoring)
+    setInterval(fullUpdate, 5000);
+
+    // also update badge on any manual change (but we do it inside fullUpdate)
+    // optional: if you want to force an extra update after a short delay
+    setTimeout(() => {
+      fullUpdate();
+    }, 300);
+
+    // ---- extra: update timestamp on load ----
+    const now = new Date();
+    timestampSpan.textContent = `Last updated: ${now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
+
+  })();
+</script>
+
+</body>
+</html>
