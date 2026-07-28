@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Legal Summarizer · Document Insight</title>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(145deg, #f6f9fc 0%, #eef2f7 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1.5rem;
+        }
+
+        .card {
+            max-width: 1100px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: 48px;
+            padding: 2.5rem 2.8rem;
+            box-shadow: 0 25px 50px -10px rgba(0, 20, 30, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.5);
+            transition: all 0.2s ease;
+        }
+
+        @media (max-width: 640px) {
+            .card {
+                padding: 1.8rem 1.2rem;
+                border-radius: 32px;
+            }
+        }
+
+        /* header */
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .header i {
+            font-size: 2.4rem;
+            color: #1a3b5d;
+            background: #d9e6f2;
+            padding: 0.5rem;
+            border-radius: 18px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.02);
+        }
+
+        .header h1 {
+            font-size: 1.9rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #0b2a41, #1f4b6e);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .header .badge {
+            margin-left: auto;
+            background: #1f4b6e10;
+            backdrop-filter: blur(4px);
+            padding: 0.4rem 1rem;
+            border-radius: 60px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #1a3b5d;
+            border: 1px solid #aac0d0;
+            letter-spacing: 0.3px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .badge i {
+            font-size: 0.8rem;
+            background: transparent;
+            padding: 0;
+            box-shadow: none;
+            color: #1f6b4a;
+        }
+
+        /* layout: two columns */
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 0.5rem;
+        }
+
+        @media (max-width: 780px) {
+            .grid {
+                grid-template-columns: 1fr;
+                gap: 1.8rem;
+            }
+        }
+
+        .panel {
+            background: #ffffffcc;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border-radius: 28px;
+            padding: 1.6rem 1.8rem;
+            box-shadow: 0 8px 20px -8px rgba(0,20,30,0.08), 0 0 0 1px #ffffff80;
+            transition: box-shadow 0.2s;
+        }
+
+        .panel:hover {
+            box-shadow: 0 12px 28px -12px rgba(0,20,30,0.12);
+        }
+
+        .panel-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #2b4d6a;
+            margin-bottom: 1.2rem;
+            border-bottom: 1px solid #dde6ef;
+            padding-bottom: 0.7rem;
+        }
+
+        .panel-label i {
+            font-size: 1rem;
+            color: #2a5f7a;
+            width: 1.6rem;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 260px;
+            padding: 1rem 1.2rem;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            border: 1px solid #d3dfe9;
+            border-radius: 20px;
+            background: #f9fcff;
+            resize: vertical;
+            transition: 0.2s;
+            color: #142b3b;
+            font-weight: 400;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.01);
+        }
+
+        textarea:focus {
+            outline: 2px solid #2b7a9c;
+            outline-offset: 2px;
+            border-color: transparent;
+            background: #ffffff;
+            box-shadow: 0 4px 12px rgba(26, 75, 110, 0.08);
+        }
+
+        .summary-box {
+            min-height: 260px;
+            background: #f4f9fe;
+            border-radius: 20px;
+            padding: 1rem 1.2rem;
+            border: 1px solid #d3dfe9;
+            color: #0b2a3f;
+            line-height: 1.7;
+            font-size: 0.95rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+            overflow-y: auto;
+            max-height: 320px;
+        }
+
+        .summary-placeholder {
+            color: #6a859c;
+            font-style: italic;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .summary-placeholder i {
+            font-size: 2.2rem;
+            color: #98b4cc;
+            opacity: 0.6;
+        }
+
+        .action-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-top: 1.8rem;
+            padding-top: 0.2rem;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 0.7rem 1.6rem;
+            background: white;
+            border: 1px solid #c6d8e6;
+            border-radius: 60px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: #1a3b5d;
+            cursor: pointer;
+            transition: 0.15s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.01);
+            backdrop-filter: blur(2px);
+            background: #f2f8ff;
+        }
+
+        .btn i {
+            font-size: 1rem;
+            color: #1f5a7a;
+        }
+
+        .btn-primary {
+            background: #1a3b5d;
+            border: 1px solid #1a3b5d;
+            color: white;
+            box-shadow: 0 8px 16px -8px #1a3b5d40;
+        }
+
+        .btn-primary i {
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0f2c44;
+            transform: scale(0.98);
+            border-color: #0f2c44;
+            box-shadow: 0 6px 14px -6px #122e44;
+        }
+
+        .btn-outline:hover {
+            background: #e2edf8;
+            border-color: #b0c9dd;
+        }
+
+        .btn:active {
+            transform: scale(0.96);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            pointer-events: none;
+            filter: grayscale(0.3);
+        }
+
+        .stats {
+            display: flex;
+            gap: 1.6rem;
+            font-size: 0.8rem;
+            color: #1f4b6e;
+            background: #eaf1f9;
+            padding: 0.4rem 1.2rem;
+            border-radius: 40px;
+            letter-spacing: 0.2px;
+        }
+
+        .stats span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .stats i {
+            color: #2b6f8f;
+            font-size: 0.8rem;
+        }
+
+        .footer-note {
+            margin-top: 2.2rem;
+            font-size: 0.75rem;
+            color: #4a6b84;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            border-top: 1px solid #d6e3ef;
+            padding-top: 1.2rem;
+        }
+
+        .footer-note i {
+            color: #3d7a9b;
+        }
+
+        .highlight {
+            background: #d4e3f0;
+            padding: 0.1rem 0.4rem;
+            border-radius: 30px;
+            color: #033853;
+            font-weight: 500;
+        }
+
+        /* small tweaks */
+        .word-count {
+            background: #dce8f2;
+            padding: 0.2rem 0.9rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+        }
+
+        /* scrollbar */
+        .summary-box::-webkit-scrollbar {
+            width: 5px;
+        }
+        .summary-box::-webkit-scrollbar-thumb {
+            background: #b7cedf;
+            border-radius: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <!-- header -->
+        <div class="header">
+            <i class="fas fa-scale-balanced"></i>
+            <h1>Legal · AI Summarizer</h1>
+            <span class="badge"><i class="fas fa-lock"></i> Confidential</span>
+        </div>
+
+        <!-- main grid -->
+        <div class="grid">
+            <!-- left: input -->
+            <div class="panel">
+                <div class="panel-label">
+                    <i class="fas fa-file-lines"></i> Source document
+                </div>
+                <textarea id="legalInput" placeholder="Paste legal text, contract clauses, deposition, or case notes …">In the Matter of the Estate of Margaret Thompson, Deceased.  The decedent, Margaret Thompson, passed away on March 12, 2025, leaving a Last Will and Testament dated September 4, 2018.  The will appoints Charles Thompson as executor.  The primary asset is a residential property at 142 Maple Street, valued at approximately $450,000, and a portfolio of stocks and bonds valued at $280,000.  The will provides specific bequests: $25,000 to the local public library, and the remaining estate to be divided equally between the decedent’s two children, Susan and Robert.  However, a later codicil dated June 2022 reduces Robert’s share by $30,000 and directs that amount to a scholarship fund.  The executor has filed a petition for probate.  No contest is anticipated, but there is a question regarding the validity of the codicil due to alleged undue influence by the library director.  The court has scheduled a hearing for July 15, 2025.</textarea>
+                <div style="display: flex; justify-content: flex-end; margin-top: 0.5rem;">
+                    <span class="word-count" id="wordCounter"><i class="far fa-clock"></i> 0 words</span>
+                </div>
+            </div>
+
+            <!-- right: summary output -->
+            <div class="panel">
+                <div class="panel-label">
+                    <i class="fas fa-robot"></i> AI summary
+                </div>
+                <div class="summary-box" id="summaryOutput">
+                    <div class="summary-placeholder" id="placeholder">
+                        <i class="fas fa-gavel"></i>
+                        <span>Summary will appear here</span>
+                        <span style="font-size:0.75rem; opacity:0.7;">Click “Summarize”</span>
+                    </div>
+                </div>
+                <!-- hidden real content -->
+                <div id="summaryText" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- action row -->
+        <div class="action-row">
+            <div class="btn-group">
+                <button class="btn btn-primary" id="summarizeBtn"><i class="fas fa-wand-magic-sparkles"></i> Summarize</button>
+                <button class="btn btn-outline" id="clearBtn"><i class="fas fa-rotate-left"></i> Clear</button>
+                <button class="btn btn-outline" id="copyBtn"><i class="fas fa-copy"></i> Copy</button>
+            </div>
+            <div class="stats" id="statsDisplay">
+                <span><i class="fas fa-compress"></i> <span id="summaryLength">0</span> chars</span>
+                <span><i class="fas fa-arrow-right-arrow-left"></i> <span id="compressionRatio">—</span></span>
+            </div>
+        </div>
+
+        <!-- footer -->
+        <div class="footer-note">
+            <i class="fas fa-shield-halved"></i> 
+            <span>AI-generated summary for reference only. Always verify with original legal counsel.</span>
+            <span style="margin-left: auto; opacity: 0.6;"><i class="fas fa-microchip"></i>  v1.0 · mock AI</span>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            const inputEl = document.getElementById('legalInput');
+            const summaryBox = document.getElementById('summaryOutput');
+            const placeholder = document.getElementById('placeholder');
+            const summaryTextDiv = document.getElementById('summaryText');
+            const wordCounter = document.getElementById('wordCounter');
+            const summarizeBtn = document.getElementById('summarizeBtn');
+            const clearBtn = document.getElementById('clearBtn');
+            const copyBtn = document.getElementById('copyBtn');
+            const summaryLengthSpan = document.getElementById('summaryLength');
+            const compressionRatioSpan = document.getElementById('compressionRatio');
+
+            // ---- helper: update word count ----
+            function updateWordCount() {
+                const text = inputEl.value.trim();
+                const words = text ? text.split(/\s+/).length : 0;
+                wordCounter.innerHTML = `<i class="far fa-clock"></i> ${words} words`;
+                return words;
+            }
+
+            // ---- core summarization (simulated AI) ----
+            function summarizeLegalText(text) {
+                if (!text.trim()) {
+                    return { summary: '', ratio: '—' };
+                }
+
+                // 1. split into sentences (simple)
+                const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+                const cleanSentences = sentences.map(s => s.trim()).filter(s => s.length > 5);
+
+                if (cleanSentences.length === 0) {
+                    return { summary: text.substring(0, 200) + '…', ratio: '—' };
+                }
+
+                // 2. extract key legal entities (very basic rule-based)
+                const legalKeywords = ['will', 'trust', 'estate', 'deceased', 'testament', 'executor', 
+                    'hearing', 'petition', 'probate', 'codicil', 'bequest', 'asset', 'property', 
+                    'clause', 'liability', 'indemnify', 'termination', 'agreement', 'party', 
+                    'court', 'damages', 'settlement', 'jurisdiction', 'allege', 'undue influence'];
+
+                // score sentences based on legal keywords and position (first sentences weighted)
+                const scored = cleanSentences.map((s, idx) => {
+                    let score = 0;
+                    const lower = s.toLowerCase();
+                    legalKeywords.forEach(kw => {
+                        if (lower.includes(kw)) score += 2;
+                    });
+                    // boost first 2 sentences
+                    if (idx < 2) score += 3;
+                    // longer sentences may contain more context
+                    if (s.length > 80) score += 1;
+                    return { sentence: s, score: score, index: idx };
+                });
+
+                // sort by score descending, then by index (stable)
+                scored.sort((a, b) => b.score - a.score || a.index - b.index);
+
+                // pick top 4-6 sentences (depending on total length)
+                let numSentences = Math.min(6, Math.max(3, Math.ceil(cleanSentences.length * 0.35)));
+                const topSentences = scored.slice(0, numSentences);
+
+                // re-sort by original order for coherent summary
+                topSentences.sort((a, b) => a.index - b.index);
+                let summary = topSentences.map(item => item.sentence).join(' ');
+
+                // if summary is too short, add a few more sentences from high score
+                if (summary.length < 200 && cleanSentences.length > numSentences) {
+                    const extra = scored.slice(numSentences, numSentences + 3);
+                    extra.sort((a,b) => a.index - b.index);
+                    const extraText = extra.map(item => item.sentence).join(' ');
+                    summary = summary + ' ' + extraText;
+                }
+
+                // trim and clean
+                summary = summary.replace(/\s+/g, ' ').trim();
+                if (summary.length > 800) {
+                    summary = summary.substring(0, 780) + ' … [truncated]';
+                }
+
+                // if still empty, fallback
+                if (!summary) {
+                    summary = text.substring(0, 250) + '…';
+                }
+
+                // compression ratio
+                const originalLen = text.length;
+                const summaryLen = summary.length;
+                const ratio = originalLen > 0 ? Math.round((summaryLen / originalLen) * 100) + '%' : '—';
+
+                return { summary, ratio };
+            }
+
+            // ---- render summary ----
+            function renderSummary(summaryText, ratio) {
+                // hide placeholder
+                placeholder.style.display = 'none';
+
+                // update summary box
+                summaryBox.innerHTML = summaryText || '—';
+                summaryBox.style.color = '#0b2a3f';
+                summaryBox.style.fontStyle = 'normal';
+
+                // update stats
+                summaryLengthSpan.textContent = summaryText ? summaryText.length : 0;
+                compressionRatioSpan.textContent = ratio || '—';
+
+                // store for copy
+                summaryTextDiv.textContent = summaryText;
+            }
+
+            // ---- reset to placeholder ----
+            function resetSummary() {
+                placeholder.style.display = 'flex';
+                summaryBox.innerHTML = `
+                    <div class="summary-placeholder" id="placeholder">
+                        <i class="fas fa-gavel"></i>
+                        <span>Summary will appear here</span>
+                        <span style="font-size:0.75rem; opacity:0.7;">Click “Summarize”</span>
+                    </div>
+                `;
+                summaryLengthSpan.textContent = '0';
+                compressionRatioSpan.textContent = '—';
+                summaryTextDiv.textContent = '';
+                // re-bind placeholder reference
+                document.getElementById('placeholder'); // no-op
+            }
+
+            // ---- main summarize action ----
+            function handleSummarize() {
+                const text = inputEl.value;
+                if (!text.trim()) {
+                    resetSummary();
+                    // set placeholder message
+                    const ph = document.querySelector('.summary-placeholder');
+                    if (ph) {
+                        ph.innerHTML = `<i class="fas fa-circle-exclamation"></i><span>No text to summarize</span>`;
+                    }
+                    return;
+                }
+
+                const result = summarizeLegalText(text);
+                if (result.summary) {
+                    renderSummary(result.summary, result.ratio);
+                } else {
+                    resetSummary();
+                }
+                updateWordCount();
+            }
+
+            // ---- clear ----
+            function handleClear() {
+                inputEl.value = '';
+                updateWordCount();
+                resetSummary();
+                // restore default placeholder
+                const ph = document.querySelector('.summary-placeholder');
+                if (ph) {
+                    ph.innerHTML = `<i class="fas fa-gavel"></i><span>Summary wi
+                        
