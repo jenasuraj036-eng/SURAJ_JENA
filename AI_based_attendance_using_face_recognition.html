@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Face · Attendance System</title>
+  <!-- Font Awesome 6 (free) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    body {
+      background: #0b1219;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      background-image: radial-gradient(circle at 20% 30%, #1a2a36 0%, #0b1219 80%);
+    }
+
+    .dashboard {
+      max-width: 1360px;
+      width: 100%;
+      background: rgba(18, 30, 41, 0.75);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-radius: 3.2rem;
+      padding: 2.2rem 2.5rem;
+      box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      transition: 0.3s;
+    }
+
+    /* header */
+    .header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .logo-area i {
+      font-size: 2.4rem;
+      color: #6fc9ff;
+      filter: drop-shadow(0 0 8px #3f9ed5);
+    }
+
+    .logo-area h1 {
+      font-size: 1.9rem;
+      font-weight: 600;
+      background: linear-gradient(135deg, #d6edff, #9acdf5);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.3px;
+    }
+
+    .badge-live {
+      background: #1d3a4b;
+      padding: 0.45rem 1.4rem;
+      border-radius: 60px;
+      color: #b3e0ff;
+      font-weight: 500;
+      font-size: 0.85rem;
+      border: 1px solid #3d6a80;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 0 12px rgba(70, 180, 255, 0.15);
+    }
+
+    .badge-live i {
+      font-size: 0.7rem;
+      color: #6fc9ff;
+    }
+
+    /* main grid: camera + recent */
+    .attendance-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 2rem;
+      margin-bottom: 2.5rem;
+    }
+
+    @media (max-width: 880px) {
+      .attendance-grid {
+        grid-template-columns: 1fr;
+        gap: 1.8rem;
+      }
+    }
+
+    /* camera card */
+    .camera-card {
+      background: rgba(8, 20, 30, 0.6);
+      border-radius: 2.4rem;
+      padding: 1.6rem 1.6rem 1.8rem;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      backdrop-filter: blur(4px);
+      box-shadow: 0 12px 28px -8px rgba(0,0,0,0.7);
+    }
+
+    .cam-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #b6d4e8;
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
+
+    .cam-header i {
+      color: #6fc9ff;
+      margin-right: 0.4rem;
+    }
+
+    .cam-placeholder {
+      background: #0e1e2b;
+      border-radius: 2rem;
+      aspect-ratio: 4 / 3;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 1px dashed #3b647c;
+      background-image: repeating-linear-gradient(45deg, #142632 0px, #142632 6px, #1a2f3f 6px, #1a2f3f 12px);
+      position: relative;
+      transition: 0.2s;
+    }
+
+    .cam-placeholder i {
+      font-size: 4.8rem;
+      color: #3b7a9a;
+      opacity: 0.6;
+      margin-bottom: 0.3rem;
+    }
+
+    .cam-placeholder span {
+      color: #6c95b0;
+      font-size: 0.95rem;
+      background: #152b39;
+      padding: 0.3rem 1.4rem;
+      border-radius: 60px;
+      letter-spacing: 0.5px;
+    }
+
+    .cam-badge {
+      position: absolute;
+      bottom: 1rem;
+      right: 1.2rem;
+      background: #0d2c3b;
+      color: #9ed3f0;
+      padding: 0.2rem 1rem;
+      border-radius: 30px;
+      font-size: 0.7rem;
+      border: 1px solid #386780;
+    }
+
+    .cam-actions {
+      display: flex;
+      gap: 0.8rem;
+      margin-top: 1.2rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      background: #1f3f52;
+      border: none;
+      padding: 0.6rem 1.6rem;
+      border-radius: 50px;
+      color: #e3f0fa;
+      font-weight: 500;
+      font-size: 0.85rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      cursor: default;
+      border: 1px solid #36647c;
+      transition: 0.15s;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .btn-primary {
+      background: #1f6c8f;
+      border-color: #4d9ec9;
+      color: white;
+      box-shadow: 0 0 16px rgba(60, 160, 220, 0.2);
+    }
+
+    .btn i {
+      font-size: 1rem;
+    }
+
+    /* right panel: recent recognitions */
+    .recent-card {
+      background: rgba(8, 20, 30, 0.5);
+      border-radius: 2.4rem;
+      padding: 1.6rem 1.6rem 1.8rem;
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(4px);
+    }
+
+    .recent-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #b6d4e8;
+      margin-bottom: 1.2rem;
+    }
+
+    .recent-header h3 {
+      font-weight: 500;
+      font-size: 1.1rem;
+    }
+
+    .recent-header i {
+      color: #6fc9ff;
+      margin-right: 0.4rem;
+    }
+
+    .badge-count {
+      background: #1d3f54;
+      padding: 0.2rem 0.9rem;
+      border-radius: 60px;
+      font-size: 0.75rem;
+      color: #c0e2f5;
+    }
+
+    .recognition-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+      max-height: 340px;
+      overflow-y: auto;
+      padding-right: 0.3rem;
+    }
+
+    .recognition-list::-webkit-scrollbar {
+      width: 4px;
+    }
+    .recognition-list::-webkit-scrollbar-track {
+      background: #182f3d;
+      border-radius: 20px;
+    }
+    .recognition-list::-webkit-scrollbar-thumb {
+      background: #3f7e9e;
+      border-radius: 20px;
+    }
+
+    .attend-item {
+      background: #132b39;
+      border-radius: 1.8rem;
+      padding: 0.8rem 1.2rem 0.8rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      border-left: 4px solid #4f9ec9;
+      backdrop-filter: blur(2px);
+      transition: 0.1s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .attend-item .avatar {
+      width: 44px;
+      height: 44px;
+      background: #1b4055;
+      border-radius: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #b6def5;
+      font-size: 1.2rem;
+      font-weight: 600;
+      flex-shrink: 0;
+      border: 1px solid #4a809e;
+    }
+
+    .attend-item .info {
+      flex: 1;
+    }
+
+    .attend-item .name {
+      color: #ecf7ff;
+      font-weight: 500;
+      font-size: 1rem;
+    }
+
+    .attend-item .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem 1.2rem;
+      font-size: 0.75rem;
+      color: #9bbdd4;
+      margin-top: 0.1rem;
+    }
+
+    .attend-item .meta i {
+      margin-right: 0.2rem;
+      color: #60b0d6;
+      width: 0.9rem;
+    }
+
+    .attend-item .status-badge {
+      background: #1b4d49;
+      color: #9ce6d0;
+      padding: 0.15rem 0.8rem;
+      border-radius: 40px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+
+    .status-badge.out {
+      background: #4d3535;
+      color: #f7bdbd;
+    }
+
+    /* stats footer */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 1.2rem;
+      margin-top: 1.8rem;
+      border-top: 1px solid #213f50;
+      padding-top: 2rem;
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      color: #b0d2e8;
+    }
+
+    .stat-item i {
+      font-size: 1.7rem;
+      color: #509fc9;
+      width: 2.2rem;
+    }
+
+    .stat-item .stat-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stat-item .stat-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      opacity: 0.7;
+    }
+
+    .stat-item .stat-number {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #e3f0fa;
+      line-height: 1.2;
+    }
+
+    .timestamp {
+      color: #6f96ad;
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      justify-content: flex-end;
+      margin-top: 0.8rem;
+    }
+
+    .timestamp i {
+      color: #4e8eb0;
+    }
+
+    /* small */
+    @media (max-width: 500px) {
+      .dashboard { padding: 1.2rem; }
+      .logo-area h1 { font-size: 1.4rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="dashboard">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo-area">
+      <i class="fas fa-robot"></i>
+      <h1>FaceAttendance · AI</h1>
+    </div>
+    <div class="badge-live">
+      <i class="fas fa-circle"></i> live · 4 cams
+    </div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="attendance-grid">
+
+    <!-- LEFT: CAMERA SIMULATION -->
+    <div class="camera-card">
+      <div class="cam-header">
+        <span><i class="fas fa-video"></i> Face recognition stream</span>
+        <span><i class="fas fa-wifi"></i> 1080p</span>
+      </div>
+      <div class="cam-placeholder">
+        <i class="fas fa-user-circle"></i>
+        <span><i class="fas fa-spinner fa-pulse" style="margin-right: 0.5rem;"></i> scanning...</span>
+        <div class="cam-badge"><i class="fas fa-check-circle" style="color:#5fc9b0;"></i> 6 faces detected</div>
+      </div>
+      <div class="cam-actions">
+        <span class="btn btn-primary"><i class="fas fa-camera"></i> Capture</span>
+        <span class="btn"><i class="fas fa-sync-alt fa-fw"></i> Recalibrate</span>
+        <span class="btn"><i class="fas fa-history"></i> Log</span>
+      </div>
+    </div>
+
+    <!-- RIGHT: RECENT RECOGNITIONS -->
+    <div class="recent-card">
+      <div class="recent-header">
+        <h3><i class="fas fa-user-check"></i> Recent recognition</h3>
+        <span class="badge-count">Today · 12</span>
+      </div>
+
+      <div class="recognition-list" id="recognitionList">
+        <!-- dynamic items will be injected by JS -->
+      </div>
+
+      <div class="timestamp">
+        <i class="far fa-clock"></i>
+        <span id="lastUpdateTime">updating...</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATS ROW -->
+  <div class="stats-row">
+    <div class="stat-item">
+      <i class="fas fa-users"></i>
+      <div class="stat-text">
+        <span class="stat-label">Total employees</span>
+        <span class="stat-number" id="totalEmployees">48</span>
+      </div>
+    </div>
+    <div class="stat-item">
+      <i class="fas fa-user-check"></i>
+      <div class="stat-text">
+        <span class="stat-label">Present today</span>
+        <span class="stat-number" id="presentToday">31</span>
+      </div>
+    </div>
+    <div class="stat-item">
+      <i class="fas fa-clock"></i>
+      <div class="stat-text">
+        <span class="stat-label">Avg. check-in</span>
+        <span class="stat-number" id="avgCheckin">09:14</span>
+      </div>
+    </div>
+    <div class="stat-item">
+      <i class="fas fa-fingerprint"></i>
+      <div class="stat-text">
+        <span class="stat-label">Confidence</span>
+        <span class="stat-number" id="confidenceScore">96<span style="font-size:0.9rem;">%</span></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    "use strict";
+
+    // ---------- mock employee database ----------
+    const employees = [
+      { id: 1, name: "Olivia Chen",   dept: "Engineering", avatar: "OC" },
+      { id: 2, name: "Marcus Rivera", dept: "Product",     avatar: "MR" },
+      { id: 3, name: "Aisha Patel",   dept: "Design",      avatar: "AP" },
+      { id: 4, name: "James Kim",     dept: "Engineering", avatar: "JK" },
+      { id: 5, name: "Elena Diaz",    dept: "HR",          avatar: "ED" },
+      { id: 6, name: "David Park",    dept: "Engineering", avatar: "DP" },
+      { id: 7, name: "Sophia Rossi",  dept: "Marketing",   avatar: "SR" },
+      { id: 8, name: "Liam O'Brien",  dept: "Engineering", avatar: "LO" },
+    ];
+
+    // ---------- state ----------
+    let attendanceLog = [];  // array of { id, name, dept, avatar, time, status }
+
+    // DOM refs
+    const listContainer = document.getElementById('recognitionList');
+    const lastUpdateSpan = document.getElementById('lastUpdateTime');
+    const totalEl = document.getElementById('totalEmployees');
+    const presentEl = document.getElementById('presentToday');
+    const avgCheckinEl = document.getElementById('avgCheckin');
+    const confidenceEl = document.getElementById('confidenceScore');
+
+    // helper: random time between 7:30 and 10:30
+    function randomTime() {
+      const hour = 7 + Math.floor(Math.random() * 4); // 7-10
+      const minute = Math.floor(Math.random() * 60);
+      return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+    }
+
+    // helper: random status (check-in / check-out)
+    function randomStatus() {
+      return Math.random() > 0.3 ? 'in' : 'out';
+    }
+
+    // generate a random attendance entry from employees
+    function generateAttendanceEntry() {
+      const emp = employees[Math.floor(Math.random() * employees.length)];
+      const status = randomStatus();
+      const time = randomTime();
+      return {
+        id: emp.id,
+        name: emp.name,
+        dept: emp.dept,
+        avatar: emp.avatar,
+        time: time,
+        status: status,
+      };
+    }
+
+    // update the list with fresh entries (keep max 8)
+    function refreshAttendance() {
+      // generate 4-7 new entries
+      const count = 4 + Math.floor(Math.random() * 4);
+      const newEntries = [];
+      for (let i = 0; i < count; i++) {
+        newEntries.push(generateAttendanceEntry());
+      }
+
+      // prepend new entries, keep only last 10 (or so)
+      attendanceLog = [...newEntries, ...attendanceLog];
+      if (attendanceLog.length > 12) {
+        attendanceLog = attendanceLog.slice(0, 12);
+      }
+
+      renderList();
+      updateStats();
+      updateTimestamp();
+    }
+
+    // render the recognition list
+    function renderList() {
+      if (!listContainer) return;
+
+      let html = '';
+      attendanceLog.forEach((item) => {
+        const statusClass = item.status === 'out' ? 'out' : '';
+        const statusIcon = item.status === 'in' 
+          ? '<i class="fas fa-sign-in-alt"></i>' 
+          : '<i class="fas fa-sign-out-alt"></i>';
+        const statusLabel = item.status === 'in' ? 'Check-in' : 'Check-out';
+
+        html += `
+          <div class="attend-item">
+            <div class="avatar">${item.avatar}</div>
+            <div class="info">
+              <div class="name">${item.name}</div>
+              <div class="meta">
+                <span><i class="fas fa-building"></i> ${item.dept}</span>
+                <span><i class="far fa-clock"></i> ${item.time}</span>
+              </div>
+            </div>
+            <div class="status-badge ${statusClass}">${statusIcon} ${statusLabel}</div>
+          </div>
+        `;
+      });
+
+      listContainer.innerHTML = html || `<div style="color:#6f96ad; padding:1rem;">No recognitions yet</div>`;
+    }
+
+    // update stats (total employees, present today, avg check-in, confidence)
+    function updateStats() {
+      // total employees (static)
+      if (totalEl) totalEl.textContent = employees.length;
+
+      // present today: count unique employees with status 'in' in the log
+      const uniqueIn = new Set();
+      attendanceLog.forEach(item => {
+        if (item.status === 'in') uniqueIn.add(item.id);
+      });
+      if (presentEl) presentEl.textContent = uniqueIn.size;
+
+      // average check-in time (from 'in' entries) - just for demo
+      const inEntries = attendanceLog.filter(item => item.status === 'in');
+      if (inEntries.length > 0 && avgCheckinEl) {
+        // pick a random time from the first few entries for demo
+        const randomIdx = Math.floor(Math.random() * inEntries.length);
+        avgCheckinEl.textContent = inEntries[randomIdx].time;
+      } else if (avgCheckinEl) {
+        avgCheckinEl.textContent = '--:--';
+      }
+
+      // confidence score: fluctuate between 92% and 99%
+      if (confidenceEl) {
+        const conf = 92 + Math.floor(Math.random() * 8);
+        confidenceEl.innerHTML = `${conf}<span style="font-size:0.9rem;">%</span>`;
+      }
+    }
+
+    function updateTimestamp() {
+      if (lastUpdateSpan) {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        lastUpdateSpan.textContent = `Updated ${timeStr}`;
+      }
+    }
+
+    // extra: update "cam" badge count (just for fun)
+    function updateCamBadge() {
+      const badge = document.querySelector('.cam-badge');
+      if (badge) {
+        const count = 4 + Math.floor(Math.random() * 6);
+        badge.innerHTML = `<i class="fas fa-check-circle" style="color:#5fc9b0;"></i> ${count} faces detected`;
+      }
+    }
+
+    // full refresh
+    function fullUpdate() {
+      refreshAttendance();
+      updateCamBadge();
+    }
+
+    // initial fill
+    (function init() {
+      // pre-populate with 6 dummy entries
+      for (let i = 0; i < 7; i++) {
+        attendanceLog.push(generateAttendanceEntry());
+      }
+      renderList();
+      updateStats();
+      updateTimestamp();
+      updateCamBadge();
+
+      // set interval every 4.5 seconds
+      setInterval(fullUpdate, 4500);
+    })();
+
+  })();
+</script>
+</body>
+</html>
