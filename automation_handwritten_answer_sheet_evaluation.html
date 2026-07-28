@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automation · Handwritten Answer Sheet Evaluation</title>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(145deg, #f4f9ff 0%, #e2edf7 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1.6rem;
+        }
+
+        .card {
+            max-width: 920px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 52px;
+            padding: 2.5rem 2.8rem;
+            box-shadow: 0 30px 60px -14px rgba(0, 30, 50, 0.25),
+                        0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+            transition: 0.2s;
+        }
+
+        @media (max-width: 620px) {
+            .card {
+                padding: 1.8rem 1.2rem;
+                border-radius: 32px;
+            }
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1.2rem;
+            border-bottom: 2px solid rgba(0, 40, 60, 0.05);
+        }
+
+        .header i {
+            font-size: 2.4rem;
+            background: #1d4d6b;
+            color: white;
+            padding: 0.6rem 0.7rem;
+            border-radius: 20px;
+            box-shadow: 0 8px 14px -6px #1d4d6b60;
+        }
+
+        .header h1 {
+            font-weight: 700;
+            font-size: 1.9rem;
+            letter-spacing: -0.02em;
+            color: #0a2535;
+        }
+
+        .header .tag {
+            margin-left: auto;
+            background: #0f3348;
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.4rem 1.2rem;
+            border-radius: 80px;
+            background: #1a5777;
+            box-shadow: 0 4px 10px rgba(0,40,60,0.15);
+        }
+
+        .sub {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #234f69;
+            font-weight: 450;
+            margin-top: -0.6rem;
+            margin-bottom: 2rem;
+            font-size: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .sub i {
+            color: #2f6b8a;
+        }
+
+        /* upload zone */
+        .upload-zone {
+            background: rgba(255, 255, 255, 0.5);
+            border: 2px dashed rgba(30, 80, 110, 0.25);
+            border-radius: 40px;
+            padding: 2.4rem 1.8rem;
+            text-align: center;
+            transition: 0.2s;
+            backdrop-filter: blur(4px);
+            margin-bottom: 2rem;
+            cursor: pointer;
+        }
+
+        .upload-zone:hover {
+            border-color: #2f6f93;
+            background: rgba(255, 255, 255, 0.7);
+        }
+
+        .upload-zone i {
+            font-size: 2.8rem;
+            color: #1b5475;
+            opacity: 0.7;
+        }
+
+        .upload-zone p {
+            margin-top: 0.5rem;
+            color: #12415b;
+            font-weight: 500;
+        }
+
+        .upload-zone .hint {
+            font-size: 0.8rem;
+            color: #3b6d89;
+            margin-top: 0.3rem;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .file-preview {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255,255,255,0.5);
+            padding: 0.8rem 1.6rem;
+            border-radius: 80px;
+            margin: 0.5rem 0 0.2rem 0;
+            border: 1px solid rgba(255,255,255,0.6);
+            flex-wrap: wrap;
+        }
+
+        .file-preview .name {
+            font-weight: 500;
+            color: #033049;
+        }
+
+        .file-preview .size {
+            color: #2e607b;
+            font-size: 0.8rem;
+        }
+
+        .file-preview .remove {
+            color: #a14a4a;
+            cursor: pointer;
+            font-size: 1.1rem;
+        }
+
+        .grid-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem 2rem;
+            margin: 1.8rem 0 1.2rem 0;
+        }
+
+        @media (max-width: 650px) {
+            .grid-2col {
+                grid-template-columns: 1fr;
+                gap: 0.8rem;
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #1d4f6b;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .form-group label i {
+            color: #387a9e;
+        }
+
+        .form-group input, .form-group select {
+            background: rgba(255,255,255,0.7);
+            border: 1px solid rgba(30, 74, 107, 0.1);
+            border-radius: 60px;
+            padding: 0.8rem 1.2rem;
+            font-size: 0.95rem;
+            transition: 0.15s;
+            backdrop-filter: blur(4px);
+            color: #0e2c3f;
+            width: 100%;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: 2px solid #1f5f82;
+            outline-offset: 2px;
+            border-color: transparent;
+            background: white;
+        }
+
+        .action-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            margin: 2rem 0 1.5rem 0;
+            gap: 1rem;
+        }
+
+        .btn {
+            background: #1a5777;
+            border: none;
+            padding: 0.9rem 2.6rem;
+            border-radius: 60px;
+            font-weight: 600;
+            color: white;
+            font-size: 1.1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: 0.15s;
+            box-shadow: 0 12px 22px -10px #1e4a6b70;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .btn:hover {
+            background: #104058;
+            transform: translateY(-2px) scale(1.01);
+        }
+
+        .btn:active {
+            transform: scale(0.96);
+        }
+
+        .btn-outline {
+            background: transparent;
+            box-shadow: none;
+            color: #1a4b66;
+            border: 1px solid rgba(30, 74, 107, 0.15);
+        }
+
+        .btn-outline:hover {
+            background: rgba(30, 74, 107, 0.06);
+            transform: none;
+        }
+
+        .btn i {
+            font-size: 1.1rem;
+        }
+
+        .result-panel {
+            margin-top: 1.8rem;
+            padding: 1.6rem 2rem;
+            border-radius: 40px;
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            transition: 0.2s;
+        }
+
+        .result-panel .title {
+            font-weight: 650;
+            font-size: 1.1rem;
+            color: #123d57;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .result-panel .title i {
+            font-size: 1.8rem;
+            color: #1f688b;
+        }
+
+        .score-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            justify-content: space-between;
+            margin-top: 0.6rem;
+        }
+
+        .score-big {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #083247;
+            letter-spacing: -0.5px;
+        }
+
+        .score-badge {
+            padding: 0.3rem 1.8rem;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            background: #d4edda;
+            color: #0a462a;
+        }
+
+        .score-badge.warning { background: #fff3cd; color: #694d0a; }
+        .score-badge.danger { background: #f8d7da; color: #752b2b; }
+        .score-badge.secondary { background: #e2e8f0; color: #2a4b62; }
+
+        .detail-metrics {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem 3rem;
+            margin-top: 1.2rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(0,0,0,0.04);
+        }
+
+        .metric-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #1b4a64;
+        }
+
+        .metric-item i {
+            width: 1.4rem;
+            color: #337394;
+        }
+
+        .metric-item span:last-child {
+            font-weight: 600;
+            color: #0b2b3f;
+        }
+
+        .footnote {
+            margin-top: 1.2rem;
+            font-size: 0.8rem;
+            color: #2a607e;
+            display: flex;
+            gap: 1.8rem;
+            flex-wrap: wrap;
+            border-top: 1px solid rgba(0,0,0,0.03);
+            padding-top: 0.8rem;
+        }
+
+        .hide { display: none; }
+
+        /* animation */
+        .fade-in {
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            0% { opacity: 0.4; transform: translateY(6px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="header">
+        <i class="fas fa-pen-fancy"></i>
+        <h1>AnswerSheet · AI eval</h1>
+        <span class="tag"><i class="fas fa-robot" style="margin-right: 6px;"></i> handwriting</span>
+    </div>
+    <div class="sub">
+        <i class="fas fa-magic"></i>
+        <span>Automated evaluation · handwritten answer sheets (OCR + heuristic)</span>
+    </div>
+
+    <!-- upload area -->
+    <div class="upload-zone" id="uploadZone">
+        <i class="fas fa-cloud-upload-alt"></i>
+        <p><strong>Upload answer sheet</strong> (image or PDF)</p>
+        <div class="hint"><i class="fas fa-hand-paper"></i> Click or drag & drop — we simulate OCR & evaluation</div>
+        <input type="file" id="fileInput" accept="image/*,.pdf,.png,.jpg,.jpeg">
+    </div>
+
+    <!-- file preview (dynamic) -->
+    <div id="filePreviewContainer" class="file-preview hide">
+        <span class="name"><i class="fas fa-file-alt" style="margin-right: 8px;"></i><span id="fileName">answer_sheet.png</span></span>
+        <span class="size" id="fileSize">2.4 MB</span>
+        <span class="remove" id="removeFileBtn"><i class="fas fa-times-circle"></i></span>
+    </div>
+
+    <!-- parameters -->
+    <div class="grid-2col">
+        <div class="form-group">
+            <label for="studentName"><i class="fas fa-user-graduate"></i> Student name</label>
+            <input type="text" id="studentName" placeholder="e.g. Alex Rivera" value="Alex Rivera">
+        </div>
+        <div class="form-group">
+            <label for="subject"><i class="fas fa-book-open"></i> Subject</label>
+            <input type="text" id="subject" placeholder="e.g. Mathematics" value="Mathematics">
+        </div>
+        <div class="form-group">
+            <label for="maxMarks"><i class="fas fa-star"></i> Max marks</label>
+            <input type="number" id="maxMarks" placeholder="100" value="100">
+        </div>
+        <div class="form-group">
+            <label for="difficulty"><i class="fas fa-sliders-h"></i> Difficulty</label>
+            <select id="difficulty">
+                <option value="easy">Easy</option>
+                <option value="medium" selected>Medium</option>
+                <option value="hard">Hard</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="action-bar">
+        <button class="btn" id="evaluateBtn"><i class="fas fa-microchip"></i> Evaluate now</button>
+        <button class="btn btn-outline" id="resetEvalBtn"><i class="fas fa-undo-alt"></i> Reset</button>
+    </div>
+
+    <!-- result panel -->
+    <div class="result-panel" id="resultPanel">
+        <div class="title">
+            <i class="fas fa-clipboard-check"></i>
+            <span>Evaluation report</span>
+        </div>
+
+        <div class="score-row">
+            <span class="score-big" id="scoreDisplay">—</span>
+            <span class="score-badge" id="scoreBadge">Pending</span>
+        </div>
+
+        <div id="resultDetails" style="margin-top: 0.3rem; color: #12415b; font-size: 0.95rem;">
+            <i class="fas fa-spinner fa-pulse" style="margin-right: 8px;"></i> 
+            Upload a sheet and run evaluation.
+        </div>
+
+        <div class="detail-metrics" id="metricDetails">
+            <div class="metric-item"><i class="fas fa-check-circle"></i> Answered: <span id="answeredCount">—</span></div>
+            <div class="metric-item"><i class="fas fa-times-circle"></i> Unanswered: <span id="unansweredCount">—</span></div>
+            <div class="metric-item"><i class="fas fa-pen"></i> Handwriting clarity: <span id="clarityScore">—</span></div>
+        </div>
+
+        <div class="footnote">
+            <span><i class="fas fa-robot"></i> Simulated OCR + heuristic · v2.1</span>
+            <span><i class="fas fa-clock"></i> <span id="evalTime">—</span></span>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // DOM elements
+        const uploadZone = document.getElementById('uploadZone');
+        const fileInput = document.getElementById('fileInput');
+        const filePreview = document.getElementById('filePreviewContainer');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const removeFileBtn = document.getElementById('removeFileBtn');
+
+        const studentName = document.getElementById('studentName');
+        const subject = document.getElementById('subject');
+        const maxMarks = document.getElementById('maxMarks');
+        const difficulty = document.getElementById('difficulty');
+
+        const evaluateBtn = document.getElementById('evaluateBtn');
+        const resetEvalBtn = document.getElementById('resetEvalBtn');
+
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const scoreBadge = document.getElementById('scoreBadge');
+        const resultDetails = document.getElementById('resultDetails');
+        const answeredCount = document.getElementById('answeredCount');
+        const unansweredCount = document.getElementById('unansweredCount');
+        const clarityScore = document.getElementById('clarityScore');
+        const evalTime = document.getElementById('evalTime');
+
+        // state
+        let uploadedFile = null;
+        let lastResult = null;
+
+        // ----- helpers -----
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1048576) return (bytes/1024).toFixed(1) + ' KB';
+            return (bytes/1048576).toFixed(1) + ' MB';
+        }
+
+        function updateFilePreview(file) {
+            if (file) {
+                fileName.textContent = file.name;
+                fileSize.textContent = formatFileSize(file.size);
+                filePreview.classList.remove('hide');
+                uploadedFile = file;
+            } else {
+                filePreview.classList.add('hide');
+                uploadedFile = null;
+            }
+        }
+
+        // reset result panel to neutral
+        function resetResultPanel() {
+            scoreDisplay.textContent = '—';
+            scoreBadge.textContent = 'Pending';
+            scoreBadge.className = 'score-badge secondary';
+            resultDetails.innerHTML = `<i class="fas fa-info-circle" style="margin-right: 8px;"></i> Upload a sheet and run evaluation.`;
+            answeredCount.textContent = '—';
+            unansweredCount.textContent = '—';
+            clarityScore.textContent = '—';
+            evalTime.textContent = '—';
+            lastResult = null;
+        }
+
+        // clear file + reset
+        function clearUpload() {
+            fileInput.value = '';
+            updateFilePreview(null);
+            resetResultPanel();
+        }
+
+        // ----- simulation: evaluate handwritten sheet -----
+        function runEvaluation() {
+            // check if file is uploaded
+            if (!uploadedFile) {
+                resultDetails.innerHTML = `<i class="fas fa-exclamation-triangle" style="color: #b35a3a; margin-right: 8px;"></i> Please upload an answer sheet first.`;
+                return;
+            }
+
+            // gather params
+            const name = studentName.value.trim() || 'Unknown';
+            const subj = subject.value.trim() || 'General';
+            const max = parseInt(maxMarks.value, 10) || 100;
+            const diff = difficulty.value; // easy/medium/hard
+
+            // simulate OCR & heuristic: generate random but plausible marks
+            // base on difficulty: easy -> higher marks, hard -> lower
+            let base = 0;
+            if (diff === 'easy') base = 75 + Math.floor(Math.random() * 20);
+            else if (diff === 'medium') base = 55 + Math.floor(Math.random() * 30);
+            else base = 35 + Math.floor(Math.random() * 35);
+            // ensure not exceed max
+            let obtained = Math.min(base, max);
+            // some randomness
+            obtained = Math.max(0, obtained + Math.floor(Math.random() * 8) - 4);
+            obtained = Math.min(max, Math.max(0, obtained));
+
+            // answered/unanswered based on obtained marks
+            const totalQuestions = 10 + Math.floor(Math.random() * 6); // 10-15
+            let answered = Math.floor((obtained / max) * totalQuestions * 0.9) + 1;
+            answered = Math.min(totalQuestions, Math.max(0, answered));
+            let unanswered = totalQuestions - answered;
+
+            // handwriting clarity (simulate)
+            const clarity = Math.floor(60 + Math.random() * 35);
+
+            // time
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+            // update result UI
+            const percentage = Math.round((obtained / max) * 100);
+            scoreDisplay.textContent = `${obtained} / ${max}`;
+
+            // badge
+            let badgeText = 'Average';
+            let badgeClass = 'score-badge warning';
+            if (percentage >= 80) { badgeText = 'Excellent'; badgeClass = 'score-badge'; }
+            else if (percentage >= 60) { badgeText = 'Good'; badgeClass = 'score-badge'; }
+            else if (percentage >= 40) { badgeText = 'Average'; badgeClass = 'score-badge warning'; }
+            else { badgeText = 'Needs improvement'; badgeClass = 'score-badge danger'; }
+            scoreBadge.textContent = badgeText;
+            scoreBadge.className = badgeClass;
+
+            // details
+            resultDetails.innerHTML = `<i class="fas fa-robot" style="margin-right: 8px;"></i> 
+                <strong>${name}</strong> · ${subj} · ${diff} difficulty · ${percentage}% accuracy`;
+
+            answeredCount.textContent = answered;
+            unansweredCount.textContent = unanswered;
+            clarityScore.textContent = clarity + '%';
+            evalTime.textContent = timeStr;
+
+            // store last result
+            lastResult = { obtained, max, percentage, answered, unanswered, clarity, time: timeStr };
+        }
+
+        // ----- event listeners -----
+        // upload zone click
+        uploadZone.addEventListener('click', function(e) {
+            if (e.target.closest('.remove')) return; // ignore remove click
+            fileInput.click();
+        });
+
+        // file input c
