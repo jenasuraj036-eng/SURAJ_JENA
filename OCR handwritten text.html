@@ -1,0 +1,569 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+    <title>✍️ OCR · Handwritten Text Recognition</title>
+    <!-- Font & Icons (clean, neutral) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(145deg, #f7f4f0 0%, #eae7e0 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+            padding: 1.5rem;
+        }
+
+        .card {
+            max-width: 880px;
+            width: 100%;
+            background: rgba(255, 250, 245, 0.75);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border-radius: 2.8rem;
+            padding: 2rem 2.2rem 2.5rem;
+            box-shadow: 0 30px 50px rgba(0, 0, 0, 0.12), 0 10px 20px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(255, 245, 235, 0.5);
+            transition: box-shadow 0.2s;
+        }
+
+        h1 {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            font-weight: 500;
+            font-size: 1.9rem;
+            letter-spacing: -0.02em;
+            color: #2e2b27;
+            margin-bottom: 0.3rem;
+        }
+
+        h1 i {
+            color: #b47b5a;
+            font-size: 2rem;
+        }
+
+        .subhead {
+            color: #5f5548;
+            font-weight: 400;
+            font-size: 1rem;
+            margin-left: 0.2rem;
+            margin-bottom: 2rem;
+            border-left: 3px solid #cfb7a8;
+            padding-left: 1rem;
+            background: rgba(220, 200, 185, 0.15);
+            border-radius: 0 12px 12px 0;
+        }
+
+        .dropzone {
+            background: #fcf9f6;
+            border: 2px dashed #cebcae;
+            border-radius: 2.2rem;
+            padding: 2.4rem 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 2rem;
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.02);
+        }
+
+        .dropzone:hover, .dropzone.dragover {
+            background: #f5eee9;
+            border-color: #b08164;
+            border-width: 2.5px;
+            transform: scale(1.005);
+        }
+
+        .dropzone i {
+            font-size: 3.8rem;
+            color: #b08164;
+            opacity: 0.7;
+            margin-bottom: 0.3rem;
+            transition: 0.2s;
+        }
+
+        .dropzone p {
+            font-size: 1.2rem;
+            color: #3f372f;
+            font-weight: 400;
+        }
+
+        .dropzone span {
+            background: #e8ddd2;
+            padding: 0.3rem 1.2rem;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            color: #3d332a;
+            display: inline-block;
+            margin-top: 0.6rem;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .preview-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.8rem;
+            margin: 1.8rem 0 1.2rem;
+            align-items: flex-start;
+        }
+
+        .image-box {
+            flex: 1 1 240px;
+            background: #f3ede8;
+            border-radius: 28px;
+            padding: 0.8rem;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.04);
+            border: 1px solid #e0d4ca;
+        }
+
+        .image-box img {
+            width: 100%;
+            height: auto;
+            max-height: 260px;
+            object-fit: contain;
+            border-radius: 20px;
+            background: #fffbf8;
+            display: block;
+        }
+
+        .result-box {
+            flex: 2 1 300px;
+            background: #faf6f1;
+            border-radius: 28px;
+            padding: 1.2rem 1.6rem;
+            border: 1px solid #e0d4ca;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.02);
+            min-height: 150px;
+        }
+
+        .result-box h3 {
+            font-weight: 450;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #6b5d50;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .result-box h3 i {
+            color: #b08164;
+        }
+
+        #recognizedText {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #2c241e;
+            background: #fffcf9;
+            padding: 0.9rem 1.2rem;
+            border-radius: 20px;
+            min-height: 80px;
+            border: 1px solid #e7dbd0;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: 'Segoe UI', 'Roboto', sans-serif;
+            transition: 0.1s;
+        }
+
+        .placeholder-text {
+            color: #a29183;
+            font-style: italic;
+            font-weight: 300;
+        }
+
+        .action-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem 1rem;
+            margin-top: 1.8rem;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+        }
+
+        .btn {
+            background: #ede6df;
+            border: none;
+            padding: 0.7rem 1.5rem;
+            border-radius: 60px;
+            font-weight: 450;
+            font-size: 0.95rem;
+            color: #3a322b;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            cursor: pointer;
+            transition: 0.15s;
+            border: 1px solid transparent;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            background: #e8dfd7;
+        }
+
+        .btn i {
+            font-size: 1.1rem;
+            color: #5f4d3d;
+        }
+
+        .btn-primary {
+            background: #b08164;
+            color: white;
+            border-color: #9b6f53;
+            box-shadow: 0 4px 8px rgba(176, 129, 100, 0.2);
+        }
+
+        .btn-primary i {
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #a07155;
+            transform: scale(1.01);
+            box-shadow: 0 6px 12px rgba(176, 129, 100, 0.25);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #d2c2b4;
+        }
+
+        .btn-outline:hover {
+            background: #e5dad0;
+            border-color: #b5957e;
+        }
+
+        .btn:active {
+            transform: scale(0.96);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            pointer-events: none;
+            filter: grayscale(0.4);
+        }
+
+        .status-badge {
+            font-size: 0.85rem;
+            color: #5f5346;
+            background: #ece3da;
+            padding: 0.3rem 1.2rem;
+            border-radius: 40px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-badge i {
+            color: #9f846f;
+        }
+
+        .footer-note {
+            margin-top: 2rem;
+            font-size: 0.8rem;
+            color: #7e6f60;
+            text-align: center;
+            border-top: 1px solid #ddd0c4;
+            padding-top: 1.2rem;
+            letter-spacing: 0.01em;
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-note i {
+            margin-right: 0.3rem;
+            color: #a58b79;
+        }
+
+        /* responsive */
+        @media (max-width: 600px) {
+            .card { padding: 1.5rem; }
+            h1 { font-size: 1.6rem; }
+            .dropzone { padding: 1.8rem 0.5rem; }
+            .action-bar { flex-direction: column; align-items: stretch; }
+            .btn-group { justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h1>
+        <i class="fas fa-pen-fancy"></i> 
+        Handwritten OCR
+    </h1>
+    <div class="subhead">
+        <i class="fas fa-robot" style="margin-right: 0.6rem;"></i> 
+        Simulated recognition · upload an image with handwritten text
+    </div>
+
+    <!-- Dropzone -->
+    <div id="dropzone" class="dropzone">
+        <i class="fas fa-cloud-upload-alt"></i>
+        <p><strong>Drop an image</strong> or click to browse</p>
+        <span><i class="far fa-file-image"></i> JPG, PNG, WEBP</span>
+        <input type="file" id="fileInput" class="file-input" accept="image/*">
+    </div>
+
+    <!-- preview + result -->
+    <div class="preview-container" id="previewContainer" style="display: none;">
+        <div class="image-box">
+            <img id="previewImage" src="#" alt="handwritten preview">
+        </div>
+        <div class="result-box">
+            <h3><i class="fas fa-font"></i> Recognized text</h3>
+            <div id="recognizedText" class="placeholder-text">
+                <i class="fas fa-hourglass-half" style="margin-right: 8px;"></i> 
+                waiting for image...
+            </div>
+        </div>
+    </div>
+
+    <!-- action bar -->
+    <div class="action-bar">
+        <div class="btn-group">
+            <button class="btn btn-outline" id="clearBtn"><i class="fas fa-trash-alt"></i> Clear</button>
+            <button class="btn btn-primary" id="recognizeBtn" disabled><i class="fas fa-magic"></i> Recognize</button>
+        </div>
+        <div class="status-badge" id="statusBadge">
+            <i class="fas fa-circle" style="color: #a8a095; font-size: 0.6rem;"></i> 
+            <span id="statusText">idle</span>
+        </div>
+    </div>
+
+    <div class="footer-note">
+        <span><i class="fas fa-code-branch"></i> demo · simulated OCR</span>
+        <span><i class="fas fa-lightbulb"></i> handwritten text simulation</span>
+        <span><i class="fas fa-image"></i> 5 sample responses</span>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // DOM refs
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('fileInput');
+        const previewContainer = document.getElementById('previewContainer');
+        const previewImage = document.getElementById('previewImage');
+        const recognizedText = document.getElementById('recognizedText');
+        const recognizeBtn = document.getElementById('recognizeBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const statusText = document.getElementById('statusText');
+
+        // ---------- mock handwritten responses (rich & varied) ----------
+        const mockResponses = [
+            "Dear Professor, I hope this message finds you well. I've attached the final draft of my thesis on 'Neural Networks for Historical Document Analysis'. Please let me know your thoughts. — M.",
+            "Today's lecture was quite inspiring. The concept of attention mechanisms in transformers really clicked. I scribbled some notes: 'self-attention -> context -> better OCR'. ",
+            "Meeting at 3pm in room 2.14. Agenda: 1) project milestones 2) budget review 3) next steps for the handwriting recognition module. Bring your latest samples!",
+            "The quick brown fox jumps over the lazy dog. Handwriting recognition is challenging but fascinating. We need more diverse training data. — signed, Dr. L.",
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam.",
+            "To-do list: finish the OCR pipeline, test with cursive samples, integrate with the web demo, and prepare the presentation for Friday. 🖊️",
+            "Congratulations! Your handwritten text was successfully recognized by our simulated OCR engine. This is a placeholder but looks like real handwriting.",
+            "The future of document digitization lies in robust handwritten text recognition. Today we achieved 87% accuracy on the IAM dataset. Next: historical manuscripts."
+        ];
+
+        let currentFile = null;
+
+        // ---------- helpers ----------
+        function setStatus(text, isProcessing = false) {
+            statusText.textContent = text;
+            const dot = document.querySelector('#statusBadge i');
+            if (isProcessing) {
+                dot.style.color = '#d4a373';
+                dot.className = 'fas fa-spinner fa-pulse';
+            } else {
+                dot.className = 'fas fa-circle';
+                dot.style.color = (text.toLowerCase().includes('done') || text.toLowerCase().includes('success')) ? '#5f8b6b' : '#a8a095';
+            }
+        }
+
+        function updateUIForImage(file) {
+            if (!file) {
+                previewContainer.style.display = 'none';
+                recognizeBtn.disabled = true;
+                setStatus('idle');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+                previewContainer.style.display = 'flex';
+                recognizeBtn.disabled = false;
+                setStatus('ready');
+                // reset text to placeholder
+                recognizedText.innerHTML = `<i class="fas fa-image" style="margin-right: 8px; opacity:0.5;"></i> image loaded — click "Recognize"`;
+                recognizedText.className = 'placeholder-text';
+            };
+            reader.readAsDataURL(file);
+            currentFile = file;
+        }
+
+        // ---------- clear everything ----------
+        function clearAll() {
+            fileInput.value = '';
+            currentFile = null;
+            previewImage.src = '#';
+            previewContainer.style.display = 'none';
+            recognizedText.innerHTML = `<i class="fas fa-hourglass-half" style="margin-right: 8px;"></i> waiting for image...`;
+            recognizedText.className = 'placeholder-text';
+            recognizeBtn.disabled = true;
+            setStatus('idle');
+            // reset dropzone style
+            dropzone.classList.remove('dragover');
+        }
+
+        // ---------- "recognition" (simulated) ----------
+        function runRecognition() {
+            if (!currentFile) {
+                setStatus('no image', false);
+                return;
+            }
+
+            // disable button during "processing"
+            recognizeBtn.disabled = true;
+            setStatus('processing…', true);
+            recognizedText.innerHTML = `<i class="fas fa-spinner fa-pulse" style="margin-right: 10px;"></i> analyzing handwritten content...`;
+            recognizedText.className = '';
+
+            // Simulate async OCR with variable delay (like real engine)
+            const delay = 600 + Math.floor(Math.random() * 900);
+            setTimeout(() => {
+                // pick a random mock response
+                const randomIndex = Math.floor(Math.random() * mockResponses.length);
+                let mock = mockResponses[randomIndex];
+
+                // sometimes add a little "handwritten" variation
+                if (Math.random() > 0.6) {
+                    mock = mock + " (✍️ cursive detected)";
+                } else if (Math.random() > 0.7) {
+                    mock = "✧ " + mock + " ✧";
+                }
+
+                // show result
+                recognizedText.textContent = mock;
+                recognizedText.className = '';  // remove placeholder style
+                recognizeBtn.disabled = false;
+                setStatus('done ✓', false);
+
+                // add a subtle success effect
+                recognizedText.style.transition = '0.1s';
+                recognizedText.style.backgroundColor = '#f3efe8';
+                setTimeout(() => {
+                    recognizedText.style.backgroundColor = '#fffcf9';
+                }, 250);
+            }, delay);
+        }
+
+        // ---------- event listeners ----------
+
+        // 1. click on dropzone -> trigger file input
+        dropzone.addEventListener('click', function(e) {
+            // avoid conflict if click on inner elements
+            if (e.target.closest('.dropzone')) {
+                fileInput.click();
+            }
+        });
+
+        // 2. file input change
+        fileInput.addEventListener('change', function(e) {
+            if (this.files && this.files.length > 0) {
+                const file = this.files[0];
+                // basic image validation
+                if (!file.type.startsWith('image/')) {
+                    alert('Please select an image file (JPG, PNG, etc.)');
+                    this.value = '';
+                    return;
+                }
+                updateUIForImage(file);
+            } else {
+                clearAll();
+            }
+        });
+
+        // 3. drag and drop support
+        dropzone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('dragover');
+        });
+
+        dropzone.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+        });
+
+        dropzone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files && files.length > 0) {
+                const file = files[0];
+                if (!file.type.startsWith('image/')) {
+                    alert('Only image files are supported.');
+                    return;
+                }
+                // update file input (for consistency)
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                fileInput.files = dt.files;
+                updateUIForImage(file);
+            }
+        });
+
+        // 4. recognize button
+        recognizeBtn.addEventListener('click', runRecognition);
+
+        // 5. clear button
+        clearBtn.addEventListener('click', clearAll);
+
+        // 6. extra: dropzone file input on paste? (optional but nice)
+        document.addEventListener('paste', function(e) {
+            const items = e.clipboardData && e.clipboardData.items;
+            if (items) {
+                for (let item of items) {
+                    if (item.type.startsWith('image/')) {
+                        const file = item.getAsFile();
+                        if (file) {
+                            const dt = new DataTransfer();
+                            dt.items.add(file);
+                            fileInput.files = dt.files;
+                            updateUIForImage(file);
+                            break;
+                        }
+                    }
+                }
+            }
+        });
+
+        // init: clear on load (clean state)
+        clearAll();
+
+        // small extra: if user clicks on dropzone but file input is hidden, fine.
+        // if window loads with no image, it's ready.
+        console.log('✍️ Handwritten OCR demo ready (simulated)');
+    })();
+</script>
+
+</body>
+</html>
+```
