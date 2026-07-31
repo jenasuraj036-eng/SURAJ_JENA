@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<!-- saved from url=(0102)file:///C:/Users/jenas/OneDrive/Desktop/suraj.project/ai%20based%20disaster%20damage%20assessment.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI · Disaster Damage Assessment</title>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="./AI · Disaster Damage Assessment_files/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(145deg, #f0f4f8 0%, #d9e2ed 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 1.5rem;
+    }
+
+    .card {
+      max-width: 1300px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-radius: 48px;
+      padding: 2rem 2.5rem;
+      box-shadow: 0 25px 45px -10px rgba(0, 20, 40, 0.35),
+                  inset 0 1px 2px rgba(255, 255, 255, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      transition: all 0.2s ease;
+    }
+
+    /* header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 2.2rem;
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .logo-icon {
+      background: #0b2a4a;
+      color: #b7e1ff;
+      width: 48px;
+      height: 48px;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      box-shadow: 0 8px 14px -6px rgba(0, 40, 80, 0.3);
+    }
+
+    .title h1 {
+      font-weight: 600;
+      font-size: 1.9rem;
+      letter-spacing: -0.5px;
+      color: #0b2a4a;
+    }
+
+    .title span {
+      font-weight: 300;
+      font-size: 1rem;
+      color: #1f4b6e;
+      display: block;
+      margin-top: 2px;
+      opacity: 0.8;
+    }
+
+    .status-badge {
+      background: #1f4b6e20;
+      backdrop-filter: blur(4px);
+      padding: 10px 20px;
+      border-radius: 60px;
+      border: 1px solid #ffffff70;
+      color: #0b2a4a;
+      font-weight: 500;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 6px 12px -6px rgba(0,0,0,0.1);
+    }
+
+    .status-badge i {
+      color: #1f8b4c;
+      font-size: 1rem;
+    }
+
+    /* main grid */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 860px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+        gap: 1.8rem;
+      }
+      .card {
+        padding: 1.5rem;
+      }
+    }
+
+    /* left panel – image & map */
+    .image-panel {
+      background: rgba(255, 255, 255, 0.4);
+      backdrop-filter: blur(4px);
+      border-radius: 32px;
+      padding: 1.5rem 1.5rem 1.8rem;
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      box-shadow: 0 8px 18px -8px rgba(0, 20, 40, 0.15);
+    }
+
+    .image-panel h3 {
+      font-weight: 500;
+      color: #1a405b;
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .image-panel h3 i {
+      color: #2b6c9e;
+    }
+
+    .disaster-img {
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: #244b66;
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+      border: 2px solid #ffffff80;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .disaster-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .img-overlay {
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
+      background: #0b2a4acc;
+      backdrop-filter: blur(8px);
+      padding: 8px 18px;
+      border-radius: 60px;
+      color: white;
+      font-size: 0.8rem;
+      font-weight: 400;
+      letter-spacing: 0.3px;
+      border: 1px solid #ffffff50;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .img-overlay i {
+      color: #ffd966;
+    }
+
+    .map-placeholder {
+      margin-top: 1.2rem;
+      background: #d2e0ed60;
+      border-radius: 28px;
+      padding: 0.8rem 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      border: 1px solid #ffffff70;
+    }
+
+    .map-placeholder i {
+      color: #1f4b6e;
+      font-size: 1.2rem;
+      margin-right: 6px;
+    }
+
+    .map-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 450;
+      color: #1f3e57;
+    }
+
+    .damage-tag {
+      background: #b13e3e20;
+      padding: 6px 18px;
+      border-radius: 40px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #8f2b2b;
+      border: 1px solid #b13e3e40;
+    }
+
+    /* right panel – AI assessment */
+    .assessment-panel {
+      background: rgba(255, 255, 255, 0.5);
+      backdrop-filter: blur(4px);
+      border-radius: 32px;
+      padding: 1.5rem 1.8rem;
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      box-shadow: 0 8px 18px -8px rgba(0, 20, 40, 0.15);
+    }
+
+    .assessment-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.4rem;
+    }
+
+    .assessment-header h3 {
+      font-weight: 500;
+      color: #1a405b;
+      font-size: 1.1rem;
+    }
+
+    .assessment-header h3 i {
+      color: #2b6c9e;
+      margin-right: 10px;
+    }
+
+    .ai-badge {
+      background: #0b2a4a;
+      color: white;
+      padding: 6px 16px;
+      border-radius: 40px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    .metric-card {
+      background: rgba(255, 255, 255, 0.5);
+      backdrop-filter: blur(4px);
+      border-radius: 24px;
+      padding: 1rem 0.8rem;
+      text-align: center;
+      border: 1px solid #ffffff90;
+      box-shadow: 0 4px 8px -4px rgba(0,0,0,0.02);
+      transition: 0.1s ease;
+    }
+
+    .metric-card .value {
+      font-size: 2rem;
+      font-weight: 600;
+      color: #0b2a4a;
+      line-height: 1.2;
+    }
+
+    .metric-card .label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #2c577b;
+      font-weight: 500;
+    }
+
+    .metric-card .sub {
+      font-size: 0.7rem;
+      color: #2c577b;
+      opacity: 0.8;
+    }
+
+    .damage-breakdown {
+      margin: 1.8rem 0 1rem;
+    }
+
+    .damage-breakdown .break-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 0.2rem;
+      border-bottom: 1px solid #d4e2f0;
+    }
+
+    .break-item:last-child {
+      border-bottom: none;
+    }
+
+    .break-label i {
+      width: 22px;
+      color: #1f4b6e;
+    }
+
+    .break-bar {
+      width: 60%;
+      height: 7px;
+      background: #cbdae8;
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    .break-bar .fill {
+      height: 100%;
+      border-radius: 20px;
+      background: #0b2a4a;
+    }
+
+    .fill.high {
+      background: #b13e3e;
+    }
+    .fill.medium {
+      background: #d18f2c;
+    }
+    .fill.low {
+      background: #3c7a5e;
+    }
+
+    .break-percent {
+      font-weight: 500;
+      font-size: 0.9rem;
+      color: #0b2a4a;
+      min-width: 40px;
+      text-align: right;
+    }
+
+    .action-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 2rem;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .btn {
+      background: white;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 60px;
+      font-weight: 500;
+      font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 6px 14px -6px rgba(0,0,0,0.1);
+      border: 1px solid #ffffff70;
+      color: #0b2a4a;
+      transition: 0.2s;
+      cursor: default;
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(4px);
+    }
+
+    .btn-primary {
+      background: #0b2a4a;
+      border: 1px solid #1f4b6e;
+      color: white;
+      box-shadow: 0 8px 16px -8px #0b2a4a60;
+    }
+
+    .btn-primary i {
+      color: #b7e1ff;
+    }
+
+    .btn i {
+      font-size: 1rem;
+    }
+
+    .btn-primary:hover {
+      background: #1a3f5e;
+      transform: scale(1.01);
+    }
+
+    .footnote {
+      margin-top: 2rem;
+      font-size: 0.8rem;
+      color: #1f4b6e;
+      opacity: 0.7;
+      display: flex;
+      justify-content: flex-end;
+      gap: 20px;
+      border-top: 1px solid #dbe6f0;
+      padding-top: 1.4rem;
+      flex-wrap: wrap;
+    }
+
+    .footnote i {
+      margin-right: 6px;
+    }
+
+    /* responsive tweaks */
+    @media (max-width: 600px) {
+      .metric-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      .action-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .btn {
+        justify-content: center;
+      }
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+  <!-- header -->
+  <div class="header">
+    <div class="logo-area">
+      <div class="logo-icon"><i class="fas fa-satellite-dish"></i></div>
+      <div class="title">
+        <h1>DisasterWatch · AI</h1>
+        <span><i class="fas fa-microchip"></i>  damage assessment · real-time</span>
+      </div>
+    </div>
+    <div class="status-badge">
+      <i class="fas fa-circle" style="color: #30b06b;"></i> 
+      <span>Active · AI v2.4</span>
+      <i class="fas fa-chevron-down" style="font-size: 0.7rem; opacity: 0.6;"></i>
+    </div>
+  </div>
+
+  <!-- main grid -->
+  <div class="dashboard-grid">
+    <!-- left column: image + map -->
+    <div class="image-panel">
+      <h3><i class="fas fa-image"></i>  Satellite view · post-event</h3>
+      <div class="disaster-img">
+        <!-- AI generated disaster scene / damage simulation (illustrative) -->
+        <img src="data:image/svg+xml,%3Csvg xmlns=&#39;http://www.w3.org/2000/svg&#39; width=&#39;800&#39; height=&#39;450&#39; viewBox=&#39;0 0 800 450&#39;%3E%3Crect width=&#39;800&#39; height=&#39;450&#39; fill=&#39;%23244b66&#39;/%3E%3Crect x=&#39;60&#39; y=&#39;80&#39; width=&#39;180&#39; height=&#39;130&#39; fill=&#39;%23a0b8cc&#39; opacity=&#39;0.3&#39;/%3E%3Crect x=&#39;340&#39; y=&#39;50&#39; width=&#39;200&#39; height=&#39;160&#39; fill=&#39;%238aa9c4&#39; opacity=&#39;0.3&#39;/%3E%3Crect x=&#39;140&#39; y=&#39;270&#39; width=&#39;250&#39; height=&#39;120&#39; fill=&#39;%236a8aa3&#39; opacity=&#39;0.3&#39;/%3E%3Crect x=&#39;520&#39; y=&#39;220&#39; width=&#39;180&#39; height=&#39;130&#39; fill=&#39;%235f7f99&#39; opacity=&#39;0.3&#39;/%3E%3Ccircle cx=&#39;210&#39; cy=&#39;180&#39; r=&#39;50&#39; fill=&#39;%23b55a3b&#39; opacity=&#39;0.5&#39;/%3E%3Ccircle cx=&#39;450&#39; cy=&#39;130&#39; r=&#39;40&#39; fill=&#39;%23b55a3b&#39; opacity=&#39;0.4&#39;/%3E%3Ccircle cx=&#39;600&#39; cy=&#39;300&#39; r=&#39;45&#39; fill=&#39;%23b55a3b&#39; opacity=&#39;0.3&#39;/%3E%3Crect x=&#39;30&#39; y=&#39;30&#39; width=&#39;40&#39; height=&#39;40&#39; fill=&#39;%23f0c27b&#39; opacity=&#39;0.5&#39;/%3E%3Crect x=&#39;720&#39; y=&#39;30&#39; width=&#39;40&#39; height=&#39;40&#39; fill=&#39;%23f0c27b&#39; opacity=&#39;0.5&#39;/%3E%3Crect x=&#39;720&#39; y=&#39;380&#39; width=&#39;40&#39; height=&#39;40&#39; fill=&#39;%23f0c27b&#39; opacity=&#39;0.5&#39;/%3E%3Crect x=&#39;30&#39; y=&#39;380&#39; width=&#39;40&#39; height=&#39;40&#39; fill=&#39;%23f0c27b&#39; opacity=&#39;0.5&#39;/%3E%3C/svg%3E" alt="AI generated disaster damage imagery">
+        <div class="img-overlay">
+          <i class="fas fa-robot"></i> AI · damage heatmap
+        </div>
+      </div>
+      <!-- map mini -->
+      <div class="map-placeholder">
+        <span class="map-label"><i class="fas fa-map-pin"></i> Affected area · 12.4 km²</span>
+        <span class="damage-tag"><i class="fas fa-triangle-exclamation"></i>  high severity</span>
+        <span style="display: flex; gap: 6px; align-items: center;"><i class="fas fa-location-dot" style="color: #b13e3e;"></i> 34.2° N, 118.6° W</span>
+      </div>
+    </div>
+
+    <!-- right column: assessment -->
+    <div class="assessment-panel">
+      <div class="assessment-header">
+        <h3><i class="fas fa-brain"></i> AI damage assessment</h3>
+        <div class="ai-badge"><i class="fas fa-bolt"></i> 95% confidence</div>
+      </div>
+      <!-- metrics -->
+      <div class="metric-grid">
+        <div class="metric-card">
+          <div class="value">78%</div>
+          <div class="label">structural damage</div>
+          <div class="sub">estimated</div>
+        </div>
+        <div class="metric-card">
+          <div class="value">2,340</div>
+          <div class="label">buildings affected</div>
+          <div class="sub">+ 122 partial</div>
+        </div>
+        <div class="metric-card">
+          <div class="value">6.2</div>
+          <div class="label">magnitude (eq)</div>
+          <div class="sub">shallow · 8 km</div>
+        </div>
+        <div class="metric-card">
+          <div class="value">4.8k</div>
+          <div class="label">population exposed</div>
+          <div class="sub">evacuation recommended</div>
+        </div>
+      </div>
+
+      <!-- breakdown -->
+      <div class="damage-breakdown">
+        <div class="break-item">
+          <span class="break-label"><i class="fas fa-house-crack"></i> Collapsed</span>
+          <div class="break-bar"><div class="fill high" style="width: 42%"></div></div>
+          <span class="break-percent">42%</span>
+        </div>
+        <div class="break-item">
+          <span class="break-label"><i class="fas fa-building"></i> Severe</span>
+          <div class="break-bar"><div class="fill high" style="width: 28%"></div></div>
+          <span class="break-percent">28%</span>
+        </div>
+        <div class="break-item">
+          <span class="break-label"><i class="fas fa-home"></i> Moderate</span>
+          <div class="break-bar"><div class="fill medium" style="width: 18%"></div></div>
+          <span class="break-percent">18%</span>
+        </div>
+        <div class="break-item">
+          <span class="break-label"><i class="fas fa-check-circle"></i> Minor / none</span>
+          <div class="break-bar"><div class="fill low" style="width: 12%"></div></div>
+          <span class="break-percent">12%</span>
+        </div>
+      </div>
+
+      <!-- action row -->
+      <div class="action-row">
+        <div class="btn"><i class="fas fa-cloud-sun"></i> update · 2 min ago</div>
+        <div class="btn btn-primary"><i class="fas fa-file-pdf"></i> export report</div>
+        <div class="btn"><i class="fas fa-share-nodes"></i> share</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- footer / extra info -->
+  <div class="footnote">
+    <span><i class="fas fa-rotate-right"></i> AI model: ResNet-152 + segmentation  ·  inference 0.3s</span>
+    <span><i class="fas fa-database"></i> data: Sentinel-1 &amp; 2 · 2026-07-30</span>
+    <span><i class="fas fa-flag"></i> damage index: 0.78 (high)</span>
+  </div>
+</div>
+
+</body></html>
